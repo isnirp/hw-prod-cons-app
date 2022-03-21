@@ -1,42 +1,47 @@
-from threading import Thread, Lock
+from threading import Thread, Condition
 from typing import List
 import logging
 
 class BoundedQueue:
     def __init__(self, queue_capacity: int):
+        """ this class tries to module a queue object by using a list"""
         self.max_size = queue_capacity
-        self.q = self._get_queue(capacity = queue_capacity)
-        self.lock = Lock()
+        self.queue_ = []
+        self.condition_ = Condition()
 
         self.log = logging.getLogger("dummy-logger")
 
 
     def add(self, name: str):
-        # lock write access to queue
-        self.lock.acquire()
+        """ add name to queue"""
+        self.condition_.acquire()
         try:
-            while len(self.q) == self.max_size:
-                # block thread
-                pass
-            self.q.append(name)
-            # notify item added
+            while len(self.queue_) == self.max_size:
+                self.condition_.wait()
+            self.queue_.append(name)
+            print(f'added {name}')
+            # self.log.debug(f'added {name}')
+            self.condition_.notify()
         finally:
-            self.lock.release()
+            self.condition_.release()
 
     def take(self):
         # lock read access to queue
-        self.lock.acquire()
+        self.condition_.acquire()
         try:
-            while len(self.q) == 0:
-                # block thread
-                pass
+            while len(self.queue_) == 0:
+                self.condition_.wait()
             #self.q.pop(i)
-            for i in range(len(self.q)):
+            for i in range(len(self.queue_)):
                 name = self.q[i]
-                self.log.info(f'Hello %s', name)
-            # motify empty
+            
+            self.condition_.notify()
         finally:
-            self.lock.release()
+            self.condition_.release()
 
-    def _get_queue(self, capacity: int) -> List:
-        return [None]*capacity
+    def len_(self) -> int:
+        return len(self.queue_)
+
+
+if __name__ == '__main__':
+    pass
