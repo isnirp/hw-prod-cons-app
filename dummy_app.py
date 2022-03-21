@@ -9,7 +9,8 @@ class BoundedQueue:
         self.queue_ = []
         self.condition_ = Condition()
 
-        self.log = logging.getLogger("dummy-logger")
+        logging.basicConfig(level=logging.DEBUG)
+        self.log = logging.getLogger("dummy-app")
 
 
     def add(self, name: str):
@@ -20,9 +21,9 @@ class BoundedQueue:
                 self.condition_.wait()
 
             self.queue_.append(name)
-            print(f'added {name}')
-            # self.log.debug(f'added {name}')
+            self.log.debug(f'added {name}')
             self.condition_.notify()
+            self.log.debug("notification sent full")
         finally:
             self.condition_.release()
 
@@ -34,7 +35,9 @@ class BoundedQueue:
                 self.condition_.wait()
 
             name = self.queue_.pop()
+            self.log.debug(f'popped {name}')
             self.condition_.notify()
+            self.log.debug("notification sent empty")
             return name
         finally:
             self.condition_.release()
