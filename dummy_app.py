@@ -18,6 +18,7 @@ class BoundedQueue:
         try:
             while len(self.queue_) == self.max_size:
                 self.condition_.wait()
+                
             self.queue_.append(name)
             print(f'added {name}')
             # self.log.debug(f'added {name}')
@@ -26,16 +27,15 @@ class BoundedQueue:
             self.condition_.release()
 
     def take(self):
-        # lock read access to queue
+        """pop name from queue"""
         self.condition_.acquire()
         try:
             while len(self.queue_) == 0:
                 self.condition_.wait()
-            #self.q.pop(i)
-            for i in range(len(self.queue_)):
-                name = self.q[i]
-            
+
+            name = self.queue_.pop()
             self.condition_.notify()
+            return name
         finally:
             self.condition_.release()
 
